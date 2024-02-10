@@ -10,7 +10,7 @@ import logo from "./ethereumLogo.png";
 import { addresses, abis } from "@my-app/contracts";
 import GET_TRANSFERS from "./graphql/subgraph";
 
-function WalletButton() {
+function WalletButton({ setProvider, setContract }) {
   const [rendered, setRendered] = useState("");
 
   const { ens } = useLookupAddress();
@@ -32,10 +32,24 @@ function WalletButton() {
     }
   }, [error]);
 
+  const initContract = () => {
+    if (window.ethereum) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(addresses.ceaPuzzleGame, abis.PuzzleGame, signer);
+      setProvider(provider);
+      setContract(contract);
+      window.ethereum.enable(); // Request access to Metamask
+    } else {
+      console.error("Ethereum object doesn't exist!");
+    }
+  };
+
   return (
     <Button
       onClick={() => {
         if (!account) {
+          initContract(); // Initialize provider and contract when clicking "Connect Wallet" button
           activateBrowserWallet();
         } else {
           deactivate();
@@ -49,20 +63,17 @@ function WalletButton() {
 }
 
 function App() {
-  const { provider, contract } = initContract(); // Initialize provider and contract
-  
+  const [provider, setProvider] = useState(null);
+  const [contract, setContract] = useState(null);
+
   return (
     <Container>
-      
       <Header>
-      
-        <WalletButton />
-        
+        <WalletButton setProvider={setProvider} setContract={setContract} />
       </Header>
       <Title>Welcome to The Riddler!</Title>
-      
       <Body>
-      <Riddler provider={provider} contract={contract} />
+        <Riddler provider={provider} contract={contract} />
         <Image src={logo} alt="ethereum-logo" />
       </Body>
     </Container>
@@ -70,20 +81,3 @@ function App() {
 }
 
 export default App;
-
-// Initialize provider and contract
-function initContract() {
-  let provider = null;
-  let contract = null;
-  
-  if (window.ethereum) {
-    provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
-    contract = new ethers.Contract(addresses.ceaPuzzleGame, abis.PuzzleGame, signer);
-    window.ethereum.enable(); // Request access to Metamask
-  } else {
-    console.error("Ethereum object doesn't exist!");
-  }
-
-  return { provider, contract };
-}
