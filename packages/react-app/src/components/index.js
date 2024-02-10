@@ -1,5 +1,13 @@
 import styled from "styled-components";
 
+// Create a Title component that'll render an <h1> tag with some styles
+export const Title = styled.h1`
+  text-align: center;
+  font-size: 2em;
+  color: white;
+  
+`;
+
 export const Body = styled.div`
   align-items: center;
   color: white;
@@ -17,7 +25,7 @@ export const Button = styled.button`
   color: #282c34;
   cursor: pointer;
   font-size: 16px;
-  margin: 0px 20px;
+  margin: 20px 20px;
   padding: 12px 24px;
   text-align: center;
   text-decoration: none;
@@ -52,4 +60,13 @@ export const Link = styled.a.attrs({
 })`
   color: #61dafb;
   margin-top: 8px;
+`;
+
+export const Input = styled.input`
+  padding: 0.5em;
+  margin: 0.5em;
+  color: #BF4F74};
+  background: white;
+  border: none;
+  border-radius: 3px;
 `;

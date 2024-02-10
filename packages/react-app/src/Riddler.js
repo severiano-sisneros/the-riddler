@@ -1,32 +1,27 @@
 import React, { useState } from 'react';
 import { ethers } from 'ethers';
-
+import { Body, Button, Input } from "./components";
 // Smart contract ABI and address
 import { addresses, abis } from "@my-app/contracts";
 
-function Riddler() {
-const [provider, setProvider] = useState(null);
-const [contract, setContract] = useState(null);
+function Riddler({provider, contract}) {
+const [activeSection, setActiveSection] = useState(null);
 const [question, setQuestion] = useState('');
 const [authorAddress, setAuthorAddress] = useState('');
 const [answer, setAnswer] = useState('');
 const [solutionCommitment, setSolutionCommitment] = useState('');
 const [maxSolvers, setMaxSolvers] = useState('');
+const [solverMaxSolvers, setSolverMaxSolvers] = useState('');
+const [solverQuestion, setSolverQuestion] = useState('');
 const [guess, setGuess] = useState('');
 const puzzleType = 1;
 
-// Initialize ethers provider and contract
-const initContract = () => {
-    if (window.ethereum) {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
-        const contract = new ethers.Contract(addresses.ceaPuzzleGame, abis.PuzzleGame, signer);
-        setProvider(provider);
-        setContract(contract);
-        window.ethereum.enable(); // Request access to Metamask
-    } else {
-        console.error("Ethereum object doesn't exist!");
-    }
+const handleSectionClick = (section) => {
+    setActiveSection(section);
+};
+
+const handleBackClick = () => {
+    setActiveSection(null);
 };
 
 // Puzzle maker submits a question
@@ -59,7 +54,7 @@ const submitAnswer = async () => {
             const { wallet } = await getSolutionCommitment(guess);
             const { signature } = await getSolutionProof(wallet, solutionCommitment, solverAddress);
             const { r, s, v } = signature;
-            const transaction = await contract.submitProof(authorAddress, puzzleType, question, solutionCommitment, maxSolvers, [r,s,v], solverAddress);
+            const transaction = await contract.submitProof(authorAddress, puzzleType, solverQuestion, solutionCommitment, solverMaxSolvers, [r,s,v], solverAddress);
             await transaction.wait();
             alert('Answer submitted successfully!');
         } catch (error) {
@@ -72,24 +67,41 @@ const submitAnswer = async () => {
 };
 
 return (
-    <div>
-        <button onClick={initContract}>Connect Wallet</button>
-        <div>
-            <h2>Submit Riddle</h2>
-            <input type="text" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Enter question" />
-            <input type="text" value={answer} onChange={(e) => setAnswer(e.target.value)} placeholder="Enter answer" />
-            <input type="text" value={maxSolvers} onChange={(e) => setMaxSolvers(e.target.value)} placeholder="Max Solvers" />
-            <button onClick={createPuzzle}>Submit Question</button>
-        </div>
-        <div>
-            <h2>Solve Riddle</h2>
-            <input type="text" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Enter question" />
-            <input type="text" value={authorAddress} onChange={(e) => setAuthorAddress(e.target.value)} placeholder="Author Address" />
-            <input type="text" value={solutionCommitment} onChange={(e) => setSolutionCommitment(e.target.value)} placeholder="Solution Commitment" />
-            <input type="text" value={maxSolvers} onChange={(e) => setMaxSolvers(e.target.value)} placeholder="Max Solvers" />
-            <input type="text" value={guess} onChange={(e) => setGuess(e.target.value)} placeholder="Your answer" />
-            <button onClick={submitAnswer}>Submit Answer</button>
-        </div>
+    <div style={{ textAlign: 'center' }}>
+        {activeSection !== 'submit' && activeSection !== 'solve' && (
+                <div>
+                    <Button onClick={() => handleSectionClick('submit')}>Submit Riddle</Button>
+                    <Button onClick={() => handleSectionClick('solve')}>Solve Riddle</Button>
+                </div>
+            )}
+        
+        {activeSection === 'submit' && (
+            <div>
+                <h2>Submit Riddle</h2>
+                <div>
+                <Input type="text" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Enter question" /><br />
+                <Input type="text" value={answer} onChange={(e) => setAnswer(e.target.value)} placeholder="Enter answer" /><br />
+                <Input type="text" value={maxSolvers} onChange={(e) => setMaxSolvers(e.target.value)} placeholder="Max Solvers" /><br />
+                <Button onClick={createPuzzle}>Submit Question</Button><br />
+                </div>
+            </div>
+        )}
+        {activeSection === 'solve' && (
+            <div>
+                <h2>Solve Riddle</h2>
+                <div>
+                <Input type="text" value={solverQuestion} onChange={(e) => setSolverQuestion(e.target.value)} placeholder="Enter question" /><br />
+                <Input type="text" value={authorAddress} onChange={(e) => setAuthorAddress(e.target.value)} placeholder="Author Address" /><br />
+                <Input type="text" value={solutionCommitment} onChange={(e) => setSolutionCommitment(e.target.value)} placeholder="Solution Commitment" /><br />
+                <Input type="text" value={solverMaxSolvers} onChange={(e) => setSolverMaxSolvers(e.target.value)} placeholder="Max Solvers" /><br />
+                <Input type="text" value={guess} onChange={(e) => setGuess(e.target.value)} placeholder="Your answer" /><br />
+                <Button onClick={submitAnswer}>Submit Answer</Button> <br />
+                </div>
+            </div>
+        )}
+        {(activeSection === 'submit' || activeSection === 'solve') && (
+                <button onClick={handleBackClick}>Back</button>
+            )}
     </div>
 );
 }
