@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { ethers } from 'ethers';
-import { Body, Button, Input } from "./components";
+import { Body, Button, Input, Text } from "./components";
 // Smart contract ABI and address
 import { addresses, abis } from "@my-app/contracts";
 
-function Riddler({provider, contract}) {
+function Riddler({provider, contract, puzzle}) {
 const [activeSection, setActiveSection] = useState(null);
 const [question, setQuestion] = useState('');
 const [authorAddress, setAuthorAddress] = useState('');
@@ -17,6 +17,12 @@ const [guess, setGuess] = useState('');
 const puzzleType = 1;
 
 const handleSectionClick = (section) => {
+    if (section == 'solve') {
+        setSolverQuestion(puzzle.data);
+        setAuthorAddress(puzzle.author);
+        setSolutionCommitment(puzzle.solutionCommitment);
+        setSolverMaxSolvers(puzzle.maxSolvers);
+    }
     setActiveSection(section);
 };
 
@@ -68,6 +74,7 @@ const submitAnswer = async () => {
 
 return (
     <div style={{ textAlign: 'center' }}>
+        {activeSection !== 'submit' && (<Text>{puzzle?.data}</Text>)}
         {activeSection !== 'submit' && activeSection !== 'solve' && (
                 <div>
                     <Button onClick={() => handleSectionClick('submit')}>Submit Riddle</Button>
@@ -90,11 +97,7 @@ return (
             <div>
                 <h2>Solve Riddle</h2>
                 <div>
-                <Input type="text" value={solverQuestion} onChange={(e) => setSolverQuestion(e.target.value)} placeholder="Enter question" /><br />
-                <Input type="text" value={authorAddress} onChange={(e) => setAuthorAddress(e.target.value)} placeholder="Author Address" /><br />
-                <Input type="text" value={solutionCommitment} onChange={(e) => setSolutionCommitment(e.target.value)} placeholder="Solution Commitment" /><br />
-                <Input type="text" value={solverMaxSolvers} onChange={(e) => setSolverMaxSolvers(e.target.value)} placeholder="Max Solvers" /><br />
-                <Input type="text" value={guess} onChange={(e) => setGuess(e.target.value)} placeholder="Your answer" /><br />
+                     <Input type="text" value={guess} onChange={(e) => setGuess(e.target.value)} placeholder="Your answer" /><br />
                 <Button onClick={submitAnswer}>Submit Answer</Button> <br />
                 </div>
             </div>
@@ -135,7 +138,7 @@ async function getSolutionCommitment(solutions) {
 async function getSolutionProof(wallet, solutionCommitment, mS) {
     try {
         // Check that the provided wallet's address matches the solution commitment
-        if (wallet.address !== solutionCommitment) {
+        if (wallet.address !== ethers.utils.getAddress(solutionCommitment)) {
             // display wallet.address and solutionCommitment
             console.log(wallet.address);
             console.log(solutionCommitment);

@@ -15,20 +15,42 @@ export const Body = styled.div`
   flex-direction: column;
   font-size: calc(10px + 2vmin);
   justify-content: center;
+  margin-top: 10px;
+`;
+
+export const Text = styled.div`
+  align-items: center;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  font-size: calc(8px + 2vmin);
+  justify-content: center;
   margin-top: 40px;
+  margin-left: calc(50px + 2vmin);
+  margin-right: calc(50px + 2vmin);
 `;
 
 export const Button = styled.button`
-  background-color: white;
-  border: none;
-  border-radius: 8px;
-  color: #282c34;
-  cursor: pointer;
-  font-size: 16px;
-  margin: 20px 20px;
-  padding: 12px 24px;
-  text-align: center;
-  text-decoration: none;
+background: none;
+color: white;
+border-radius: 10px;
+border: none;
+padding: 10px;
+margin: 20px;
+font-size: 12px;
+:disabled {
+  opacity: 0.4;
+}
+:hover {
+  box-shadow: 0 0 10px blue;
+}
+`;
+
+export const ButtonContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 `;
 
 export const Container = styled.div`

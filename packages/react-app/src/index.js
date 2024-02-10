@@ -20,7 +20,7 @@ const config = {
 // See all subgraphs: https://thegraph.com/explorer/
 const client = new ApolloClient({
   cache: new InMemoryCache(),
-  uri: "https://api.thegraph.com/subgraphs/name/paulrberg/create-eth-app",
+  uri: "https://api.studio.thegraph.com/query/26546/puzzlegame/v0.0.1",
 });
 
 ReactDOM.render(

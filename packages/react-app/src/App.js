@@ -4,11 +4,11 @@ import { Contract } from "@ethersproject/contracts";
 import { shortenAddress, useCall, useEthers, useLookupAddress } from "@usedapp/core";
 import React, { useEffect, useState } from "react";
 import { ethers } from 'ethers';
-import { Title, Body, Button, Container, Header, Image, Link } from "./components";
+import { Title, Body, Button, Container, Header, Image, ButtonContainer} from "./components";
 import logo from "./ethereumLogo.png";
 
 import { addresses, abis } from "@my-app/contracts";
-import GET_TRANSFERS from "./graphql/subgraph";
+import GET_PUZZLES from "./graphql/subgraph";
 
 function WalletButton({ setProvider, setContract }) {
   const [rendered, setRendered] = useState("");
@@ -65,19 +65,63 @@ function WalletButton({ setProvider, setContract }) {
 function App() {
   const [provider, setProvider] = useState(null);
   const [contract, setContract] = useState(null);
+  const [skip, setSkip] = useState(0); // Initialize skip variable
+
+  const { loading, error: subgraphQueryError, data, refetch } = useQuery(GET_PUZZLES, {
+    variables: { skip }, // Use skip variable in the query
+  });
+
+  useEffect(() => {
+    if (subgraphQueryError) {
+      console.error("Error while querying subgraph:", subgraphQueryError.message);
+      setSkip(0); // Reset skip to 0 if there's an error  
+      return;
+    }
+    if (!loading && data && data?.puzzleCreateds) {
+      console.log({ puzzleCreateds: data?.puzzleCreateds });
+    } 
+  }, [loading, subgraphQueryError, data]);
+
+  // if data.puzzleCreateds is empty, reset skip to 0
+  if (!loading && data && data?.puzzleCreateds.length === 0) {
+    setSkip(0);
+  }
+
+  const puzzle = data?.puzzleCreateds?.[0]; // Assuming you only expect one puzzle
+
+  const handleNextClick = () => {
+    setSkip(skip + 1); // Increment skip by 1 to fetch the next set of puzzles
+    refetch(); // Refetch data with the updated skip variable
+  };
+
+  const handlePreviousClick = () => {
+    if (skip > 0) {
+      setSkip(skip - 1); // Decrement skip by 1 to fetch the previous set of puzzles
+      refetch(); // Refetch data with the updated skip variable
+    }
+  };
 
   return (
     <Container>
       <Header>
         <WalletButton setProvider={setProvider} setContract={setContract} />
       </Header>
-      <Title>Welcome to The Riddler!</Title>
+      <Title>Welcome to The Riddler?</Title>
+
       <Body>
-        <Riddler provider={provider} contract={contract} />
+        <ButtonContainer>
+          {/* Button to navigate to the previous set of puzzles */}
+          <Button onClick={handlePreviousClick} disabled={skip === 0}>Previous</Button>
+          <Riddler provider={provider} contract={contract} puzzle={puzzle} />
+          {/* Button to navigate to the next set of puzzles */}
+          <Button onClick={handleNextClick}>Next</Button>
+        </ButtonContainer>
+       
         <Image src={logo} alt="ethereum-logo" />
       </Body>
     </Container>
   );
 }
+
 
 export default App;
