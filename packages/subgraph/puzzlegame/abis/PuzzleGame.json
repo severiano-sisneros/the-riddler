@@ -1,0 +1,193 @@
+[
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "puzzleDigest",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "puzzleType",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "data",
+        "type": "string"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "author",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "solutionCommitment",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "maxSolvers",
+        "type": "uint256"
+      }
+    ],
+    "name": "PuzzleCreated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "puzzleDigest",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "solver",
+        "type": "address"
+      }
+    ],
+    "name": "PuzzleSolved",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "puzzleType", "type": "uint256" },
+      { "internalType": "string", "name": "data", "type": "string" },
+      { "internalType": "address", "name": "author", "type": "address" },
+      {
+        "internalType": "address",
+        "name": "solutionCommitment",
+        "type": "address"
+      },
+      { "internalType": "uint256", "name": "maxSolvers", "type": "uint256" }
+    ],
+    "name": "calculatePuzzleDigest",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "id", "type": "uint256" },
+      { "internalType": "address", "name": "solverAddress", "type": "address" }
+    ],
+    "name": "checkIfSolverHasSolved",
+    "outputs": [
+      { "internalType": "uint256", "name": "", "type": "uint256" },
+      { "internalType": "bool", "name": "", "type": "bool" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "puzzleType", "type": "uint256" },
+      { "internalType": "string", "name": "data", "type": "string" },
+      {
+        "internalType": "address",
+        "name": "solutionCommitment",
+        "type": "address"
+      },
+      { "internalType": "uint256", "name": "maxSolvers", "type": "uint256" }
+    ],
+    "name": "createPuzzle",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "id", "type": "uint256" }],
+    "name": "getPuzzle",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "puzzleDigest",
+            "type": "uint256"
+          },
+          { "internalType": "uint256", "name": "numSolvers", "type": "uint256" }
+        ],
+        "internalType": "struct Puzzle",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "name": "proofUsed",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "name": "puzzleSolved",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "name": "puzzles",
+    "outputs": [
+      { "internalType": "uint256", "name": "puzzleDigest", "type": "uint256" },
+      { "internalType": "uint256", "name": "numSolvers", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "author", "type": "address" },
+      { "internalType": "uint256", "name": "puzzleType", "type": "uint256" },
+      { "internalType": "string", "name": "data", "type": "string" },
+      {
+        "internalType": "address",
+        "name": "solutionCommitment",
+        "type": "address"
+      },
+      { "internalType": "uint256", "name": "maxSolvers", "type": "uint256" },
+      { "internalType": "uint256[3]", "name": "proof", "type": "uint256[3]" },
+      { "internalType": "address", "name": "m_s", "type": "address" }
+    ],
+    "name": "submitProof",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "solver_message",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256[3]",
+        "name": "signature",
+        "type": "uint256[3]"
+      },
+      { "internalType": "address", "name": "signer_address", "type": "address" }
+    ],
+    "name": "verify_signature",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "pure",
+    "type": "function"
+  }
+]

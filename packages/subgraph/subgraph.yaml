@@ -5,22 +5,26 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
-    name: CeaErc20
-    network: mainnet
+    name: PuzzleGame
+    network: sepolia
     source:
-      abi: erc20
-      address: "0xa6dF0C88916f3e2831A329CE46566dDfBe9E74b7"
+      abi: PuzzleGame
+      address: "0x67FAD1f2547c62215B17e39e9C2c4c7832D36AEB"
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
       abis:
-        - name: erc20
-          file: ../contracts/src/abis/erc20.json
+        - name: PuzzleGame
+          file: ../contracts/src/abis/PuzzleGame.json
       entities:
-        - Token
-        - Transfer
+        - PuzzleCreated
+        - PuzzleSolved
       eventHandlers:
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
-      file: ./src/mappings/transfers.ts
+        - event: PuzzleCreated (indexed uint256, indexed uint256, string, indexed address, address, uint256)
+          handler: handlePuzzleCreated
+      file: ./src/mappings/puzzleCreations.ts
+      language: wasm/assemblyscript
+        - event: PuzzleSolved (indexed uint256, indexed solver)
+          handler: handlePuzzleSolved
+      file: ./src/mappings/puzzleSolves.ts
       language: wasm/assemblyscript

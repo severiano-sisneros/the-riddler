@@ -1,0 +1,21 @@
+type PuzzleCreated @entity(immutable: true) {
+  id: Bytes!
+  puzzleDigest: BigInt! # uint256
+  puzzleType: BigInt! # uint256
+  data: String! # string
+  author: Bytes! # address
+  solutionCommitment: Bytes! # address
+  maxSolvers: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type PuzzleSolved @entity(immutable: true) {
+  id: Bytes!
+  puzzleDigest: BigInt! # uint256
+  solver: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}

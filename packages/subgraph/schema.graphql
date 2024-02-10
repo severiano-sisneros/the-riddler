@@ -11,3 +11,10 @@ type Transfer @entity {
   to: String!
   value: BigInt!
 }
+
+type PuzzleCreated @entity {
+  digest: String!
+  type: BigInt!
+  author: String!
+
+}
