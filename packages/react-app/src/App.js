@@ -4,7 +4,7 @@ import { Contract } from "@ethersproject/contracts";
 import { shortenAddress, useCall, useEthers, useLookupAddress } from "@usedapp/core";
 import React, { useEffect, useState } from "react";
 import { ethers } from 'ethers';
-import { Title, Body, Button, Container, Header, Image, ButtonContainer} from "./components";
+import { Title, Body, Button, Container, Header, Image, ButtonContainer, Link} from "./components";
 import logo from "./ethereumLogo.png";
 
 import { addresses, abis } from "@my-app/contracts";
@@ -50,7 +50,7 @@ function WalletButton({ setProvider, setContract }) {
       onClick={() => {
         if (!account) {
           initContract(); // Initialize provider and contract when clicking "Connect Wallet" button
-          activateBrowserWallet();
+          // activateBrowserWallet();
         } else {
           deactivate();
         }
@@ -117,6 +117,9 @@ function App() {
           <Button onClick={handleNextClick}>Next</Button>
         </ButtonContainer>
       </Body>
+      <Link href="https://sepolia.etherscan.io/address/0x67fad1f2547c62215b17e39e9c2c4c7832d36aeb">Deployed Contract</Link>
+      <Link href="https://github.com/severiano-sisneros/puzzles_contract_foundry">Contract Source Code</Link>
+      <Link href="https://github.com/severiano-sisneros/the-riddler">dApp and Subgraph Source Code</Link>
     </Container>
   );
 }
