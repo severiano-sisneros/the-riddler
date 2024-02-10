@@ -25,9 +25,9 @@ export const Text = styled.div`
   flex-direction: column;
   font-size: calc(8px + 2vmin);
   justify-content: center;
-  margin-top: 40px;
-  margin-left: calc(50px + 2vmin);
-  margin-right: calc(50px + 2vmin);
+  margin-top: 20px;
+  margin-left: calc(0px + 2vmin);
+  margin-right: calc(0px + 2vmin);
 `;
 
 export const Button = styled.button`

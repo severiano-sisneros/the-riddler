@@ -116,8 +116,6 @@ function App() {
           {/* Button to navigate to the next set of puzzles */}
           <Button onClick={handleNextClick}>Next</Button>
         </ButtonContainer>
-       
-        <Image src={logo} alt="ethereum-logo" />
       </Body>
     </Container>
   );
