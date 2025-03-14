@@ -1,11 +1,12 @@
 import styled from "styled-components";
+import WalletModal from './WalletModal';
 
-// Create a Title component that'll render an <h1> tag with some styles
+export { WalletModal };
+
 export const Title = styled.h1`
   text-align: center;
   font-size: 2em;
   color: white;
-  
 `;
 
 export const Body = styled.div`
@@ -31,19 +32,25 @@ export const Text = styled.div`
 `;
 
 export const Button = styled.button`
-background: none;
-color: white;
-border-radius: 10px;
-border: none;
-padding: 10px;
-margin: 20px;
-font-size: 12px;
-:disabled {
-  opacity: 0.4;
-}
-:hover {
-  box-shadow: 0 0 10px blue;
-}
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 12px 24px;
+  margin: 15px;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  :disabled {
+    opacity: 0.4;
+  }
+  
+  :hover {
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 15px rgba(147, 112, 219, 0.6);
+    transform: translateY(-2px);
+  }
 `;
 
 export const ButtonContainer = styled.div`
@@ -54,20 +61,25 @@ export const ButtonContainer = styled.div`
 `;
 
 export const Container = styled.div`
-  background-color: #282c34;
+  background: transparent;
   display: flex;
   flex-direction: column;
-  height: calc(100vh);
+  min-height: 100vh;
 `;
 
 export const Header = styled.header`
   align-items: center;
-  background-color: #282c34;
+  background: transparent;
   color: white;
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
   min-height: 70px;
+  padding: 20px;
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 100;
 `;
 
 export const Image = styled.img`
@@ -80,15 +92,38 @@ export const Link = styled.a.attrs({
   target: "_blank",
   rel: "noopener noreferrer",
 })`
-  color: #61dafb;
-  margin-top: 8px;
+  color: white;
+  margin: 0 15px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9em;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  text-decoration: none;
+  
+  :hover {
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 15px rgba(147, 112, 219, 0.6);
+    transform: translateY(-2px);
+  }
 `;
 
 export const Input = styled.input`
-  padding: 0.5em;
-  margin: 0.5em;
-  color: #BF4F74};
-  background: white;
-  border: none;
-  border-radius: 3px;
+  padding: 15px 25px;
+  margin: 15px 0;
+  color: white;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  font-family: 'Cinzel', serif;
+  font-size: 1.1em;
+  transition: all 0.3s ease;
+  width: calc(100% - 50px);
+  
+  :focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 10px rgba(138, 43, 226, 0.4);
+    background: rgba(255, 255, 255, 0.05);
+  }
 `;
