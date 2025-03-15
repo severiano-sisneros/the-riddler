@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { ethers } from 'ethers';
-import { Contract } from "@ethersproject/contracts";
 import { configureChains, createConfig, WagmiConfig, useAccount, useNetwork, useSwitchNetwork, usePublicClient, useWalletClient } from 'wagmi';
+import { getContract } from 'viem';
 import { mainnet } from 'wagmi/chains';
 import { alchemyProvider } from 'wagmi/providers/alchemy';
 import { infuraProvider } from 'wagmi/providers/infura';
@@ -14,6 +13,10 @@ import {
   darkTheme,
   ConnectButton
 } from '@rainbow-me/rainbowkit';
+import {
+  QueryClientProvider,
+  QueryClient,
+} from "@tanstack/react-query";
 import Riddler from './Riddler';
 import { Body, Container, Header, Link } from "./components";
 import { addresses, abis } from "@my-app/contracts";
@@ -71,8 +74,6 @@ function RiddlerApp() {
   const { switchNetwork } = useSwitchNetwork();
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
-  const [provider, setProvider] = useState(null);
-  const [signer, setSigner] = useState(null);
 
   // Handle network switching
   useEffect(() => {
@@ -81,30 +82,40 @@ function RiddlerApp() {
     }
   }, [isConnected, chain, switchNetwork]);
 
-  // Handle provider and signer setup
+  // Set up contract instance
   useEffect(() => {
-    if (isConnected && chain?.id === sepolia.id && walletClient) {
-      // For connected wallet state
-      const provider = new ethers.providers.Web3Provider(walletClient);
-      const signer = provider.getSigner();
-      setProvider(provider);
-      setSigner(signer);
-    } else {
-      // For read-only state
-      const provider = new ethers.providers.JsonRpcProvider('https://rpc.sepolia.org');
-      setProvider(provider);
-      setSigner(null);
-    }
-  }, [isConnected, chain, walletClient]);
-
-  useEffect(() => {
-    if (signer && isConnected && chain?.id === sepolia.id) {
-      const contract = new Contract(addresses.ceaPuzzleGame, abis.PuzzleGame, signer);
+    if (isConnected && chain?.id === sepolia.id && walletClient && publicClient) {
+      const contract = {
+        address: addresses.ceaPuzzleGame,
+        abi: abis.PuzzleGame,
+        write: {
+          createPuzzle: async (args, config) => {
+            const hash = await walletClient.writeContract({
+              address: addresses.ceaPuzzleGame,
+              abi: abis.PuzzleGame,
+              functionName: 'createPuzzle',
+              args,
+              ...config
+            });
+            return hash;
+          },
+          submitProof: async (args, config) => {
+            const hash = await walletClient.writeContract({
+              address: addresses.ceaPuzzleGame,
+              abi: abis.PuzzleGame,
+              functionName: 'submitProof',
+              args,
+              ...config
+            });
+            return hash;
+          }
+        }
+      };
       setContract(contract);
     } else {
       setContract(null);
     }
-  }, [signer, isConnected, chain]);
+  }, [walletClient, publicClient, isConnected, chain]);
 
   const { loading, error: subgraphQueryError, data, refetch } = useQuery(GET_PUZZLES, {
     variables: { skip },
@@ -142,13 +153,11 @@ function RiddlerApp() {
   return (
     <Container>
       <Header>
-        <ConnectButton />
+        <ConnectButton chainStatus="name" />
       </Header>
       <Body>
         <Riddler 
-          provider={provider} 
-          signer={signer}
-          contract={contract} 
+          contract={contract}
           puzzle={puzzle}
           onPrevious={handlePreviousClick}
           onNext={handleNextClick}
@@ -179,24 +188,27 @@ function RiddlerApp() {
   );
 }
 
-function App() {
+const queryClient = new QueryClient();
+
+const App = () => {
   return (
     <WagmiConfig config={wagmiConfig}>
-      <RainbowKitProvider 
-        chains={chains}
-        projectId={projectId}
-        coolMode
-        modalSize="compact"
-        showRecentTransactions={true}
-        initialChain={sepolia}
-        theme={darkTheme({
-          accentColor: '#7b3fe4',
-          accentColorForeground: 'white',
-          borderRadius: 'medium'
-        })}
-      >
-        <RiddlerApp />
-      </RainbowKitProvider>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider 
+          chains={chains}
+          projectId={projectId}
+          coolMode
+          modalSize="wide"
+          initialChain={sepolia}
+          theme={darkTheme({
+            accentColor: '#7b3fe4',
+            accentColorForeground: 'white',
+            borderRadius: 'medium'
+          })}
+        >
+          <RiddlerApp />
+        </RainbowKitProvider>
+      </QueryClientProvider>
     </WagmiConfig>
   );
 }

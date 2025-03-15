@@ -4,13 +4,12 @@ import { gql } from "@apollo/client";
 const GET_PUZZLES = gql`
 query GetPuzzles($skip: Int!)
 {
-  puzzleCreateds(first: 1, skip: $skip) {
+  puzzleCreateds(first: 1, skip: $skip, orderBy: blockTimestamp, orderDirection: desc) {
     author
     solutionCommitment
     maxSolvers
-    puzzleDigest
-    puzzleType
     data
+    blockTimestamp
   }
 }
 `;
