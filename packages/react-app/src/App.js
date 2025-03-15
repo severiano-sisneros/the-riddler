@@ -1,127 +1,110 @@
-import Riddler from './Riddler';
-import { useQuery } from "@apollo/client";
-import { Contract } from "@ethersproject/contracts";
-import { shortenAddress, useCall, useEthers, useLookupAddress } from "@usedapp/core";
 import React, { useEffect, useState } from "react";
 import { ethers } from 'ethers';
-import { Body, Container, Header, Link, WalletModal } from "./components";
+import { Contract } from "@ethersproject/contracts";
+import { configureChains, createConfig, WagmiConfig, useAccount, useNetwork, useSwitchNetwork, usePublicClient, useWalletClient } from 'wagmi';
+import { mainnet } from 'wagmi/chains';
+import { alchemyProvider } from 'wagmi/providers/alchemy';
+import { infuraProvider } from 'wagmi/providers/infura';
+import { publicProvider } from 'wagmi/providers/public';
+import { useQuery } from "@apollo/client";
+import '@rainbow-me/rainbowkit/styles.css';
+import {
+  getDefaultWallets,
+  RainbowKitProvider,
+  darkTheme,
+  ConnectButton
+} from '@rainbow-me/rainbowkit';
+import Riddler from './Riddler';
+import { Body, Container, Header, Link } from "./components";
 import { addresses, abis } from "@my-app/contracts";
 import GET_PUZZLES from "./graphql/subgraph";
 
-function WalletButton({ setProvider, setContract }) {
-  const [showModal, setShowModal] = useState(false);
-  const [rendered, setRendered] = useState("");
-  const { ens } = useLookupAddress();
-  const { account, activateBrowserWallet, deactivate, error } = useEthers();
+const sepolia = {
+  id: 11155111,
+  name: 'Sepolia',
+  network: 'sepolia',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'Sepolia Ether',
+    symbol: 'SEP',
+  },
+  rpcUrls: {
+    public: { http: ['https://rpc.sepolia.org'] },
+    default: { http: ['https://rpc.sepolia.org'] },
+  },
+  blockExplorers: {
+    etherscan: { name: 'Etherscan', url: 'https://sepolia.etherscan.io' },
+    default: { name: 'Etherscan', url: 'https://sepolia.etherscan.io' },
+  },
+  testnet: true,
+};
 
-  useEffect(() => {
-    if (ens) {
-      setRendered(ens);
-    } else if (account) {
-      setRendered(shortenAddress(account));
-    } else {
-      setRendered("");
-    }
-  }, [account, ens, setRendered]);
+const projectId = "82500884f15e70a2c1ab62e717064432";
 
-  useEffect(() => {
-    if (error) {
-      console.error("Error while connecting wallet:", error.message);
-    }
-  }, [error]);
+const { chains, publicClient, webSocketPublicClient } = configureChains(
+  [mainnet, sepolia],
+  [
+    process.env.REACT_APP_INFURA_ID ? infuraProvider({ apiKey: process.env.REACT_APP_INFURA_ID }) : null,
+    process.env.REACT_APP_ALCHEMY_KEY ? alchemyProvider({ apiKey: process.env.REACT_APP_ALCHEMY_KEY }) : null,
+    publicProvider()
+  ].filter(Boolean)
+);
 
-  const handleWalletSelect = async (wallet) => {
-    try {
-      if (!wallet.getProvider) {
-        // Handle WalletConnect case when implemented
-        alert('This wallet type is not yet supported');
-        return;
-      }
+const { connectors } = getDefaultWallets({
+  appName: 'The Riddler',
+  projectId,
+  chains
+});
 
-      // Activate browser wallet first through useDApp
-      await activateBrowserWallet();
+const wagmiConfig = createConfig({
+  autoConnect: true,
+  connectors,
+  publicClient,
+  webSocketPublicClient
+});
 
-      // Get the provider after activation
-      const injectedProvider = wallet.getProvider();
-      if (!injectedProvider) {
-        throw new Error('No provider available');
-      }
-
-      // Initialize ethers provider
-      const provider = new ethers.providers.Web3Provider(injectedProvider, 'any');
-
-      // Request accounts
-      try {
-        await provider.send("eth_requestAccounts", []);
-      } catch (error) {
-        if (error.code === 4001) {
-          throw new Error('Please approve the connection request in your wallet.');
-        }
-        throw error;
-      }
-
-      // Get signer after successful activation
-      const signer = provider.getSigner();
-      
-      // Initialize contract
-      const contract = new ethers.Contract(addresses.ceaPuzzleGame, abis.PuzzleGame, signer);
-      
-      // Update state
-      setProvider(provider);
-      setContract(contract);
-      setShowModal(false);
-
-      // Log success but catch any errors to prevent UI disruption
-      try {
-        console.log('Wallet connected successfully:', {
-          address: await signer.getAddress(),
-          chainId: (await provider.getNetwork()).chainId
-        });
-      } catch (error) {
-        console.error('Error logging wallet details:', error);
-      }
-    } catch (error) {
-      console.error("Error connecting wallet:", error);
-      alert(error.message || 'Failed to connect wallet. Please try again.');
-    }
-  };
-
-  const handleDisconnect = () => {
-    deactivate();
-    setProvider(null);
-    setContract(null);
-  };
-
-  return (
-    <>
-      <button
-        className="riddler-button"
-        onClick={() => {
-          if (!account) {
-            setShowModal(true);
-          } else {
-            handleDisconnect();
-          }
-        }}
-      >
-        {rendered === "" && "Connect Wallet"}
-        {rendered !== "" && rendered}
-      </button>
-
-      {showModal && (
-        <WalletModal
-          onClose={() => setShowModal(false)}
-          onSelectWallet={handleWalletSelect}
-        />
-      )}
-    </>
-  );
-}
-
-function App() {
-  const [provider, setProvider] = useState(null);
-  const [contract, setContract] = useState(null);
+function RiddlerApp() {
   const [skip, setSkip] = useState(0);
+  const [contract, setContract] = useState(null);
+  const { address, isConnected } = useAccount();
+  const { chain } = useNetwork();
+  const { switchNetwork } = useSwitchNetwork();
+  const publicClient = usePublicClient();
+  const { data: walletClient } = useWalletClient();
+  const [provider, setProvider] = useState(null);
+  const [signer, setSigner] = useState(null);
+
+  // Handle network switching
+  useEffect(() => {
+    if (isConnected && chain?.id !== sepolia.id) {
+      switchNetwork?.(sepolia.id);
+    }
+  }, [isConnected, chain, switchNetwork]);
+
+  // Handle provider and signer setup
+  useEffect(() => {
+    if (isConnected && chain?.id === sepolia.id && walletClient) {
+      // For connected wallet state
+      const provider = new ethers.providers.Web3Provider(walletClient);
+      const signer = provider.getSigner();
+      setProvider(provider);
+      setSigner(signer);
+    } else {
+      // For read-only state
+      const provider = new ethers.providers.JsonRpcProvider('https://rpc.sepolia.org');
+      setProvider(provider);
+      setSigner(null);
+    }
+  }, [isConnected, chain, walletClient]);
+
+  useEffect(() => {
+    if (signer && isConnected && chain?.id === sepolia.id) {
+      const contract = new Contract(addresses.ceaPuzzleGame, abis.PuzzleGame, signer);
+      setContract(contract);
+    } else {
+      setContract(null);
+    }
+  }, [signer, isConnected, chain]);
 
   const { loading, error: subgraphQueryError, data, refetch } = useQuery(GET_PUZZLES, {
     variables: { skip },
@@ -159,11 +142,12 @@ function App() {
   return (
     <Container>
       <Header>
-        <WalletButton setProvider={setProvider} setContract={setContract} />
+        <ConnectButton />
       </Header>
       <Body>
         <Riddler 
           provider={provider} 
+          signer={signer}
           contract={contract} 
           puzzle={puzzle}
           onPrevious={handlePreviousClick}
@@ -192,6 +176,28 @@ function App() {
         </Link>
       </footer>
     </Container>
+  );
+}
+
+function App() {
+  return (
+    <WagmiConfig config={wagmiConfig}>
+      <RainbowKitProvider 
+        chains={chains}
+        projectId={projectId}
+        coolMode
+        modalSize="compact"
+        showRecentTransactions={true}
+        initialChain={sepolia}
+        theme={darkTheme({
+          accentColor: '#7b3fe4',
+          accentColorForeground: 'white',
+          borderRadius: 'medium'
+        })}
+      >
+        <RiddlerApp />
+      </RainbowKitProvider>
+    </WagmiConfig>
   );
 }
 

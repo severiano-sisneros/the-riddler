@@ -1,7 +1,4 @@
 import styled from "styled-components";
-import WalletModal from './WalletModal';
-
-export { WalletModal };
 
 export const Title = styled.h1`
   text-align: center;

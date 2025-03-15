@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 // Smart contract ABI and address
 import { addresses, abis } from "@my-app/contracts";
 
-function Riddler({provider, contract, puzzle, onPrevious, onNext, canGoPrevious}) {
+function Riddler({provider, signer, contract, puzzle, onPrevious, onNext, canGoPrevious}) {
     const [activeSection, setActiveSection] = useState(null);
     const [question, setQuestion] = useState('');
     const [authorAddress, setAuthorAddress] = useState('');
@@ -42,8 +42,17 @@ function Riddler({provider, contract, puzzle, onPrevious, onNext, canGoPrevious}
 
     // Puzzle maker submits a question
     const createPuzzle = async () => {
-        if (!contract || !provider) {
-            setCreateError('Please connect your wallet first');
+        if (!signer || !contract) {
+            setCreateError('Please connect your wallet and switch to Sepolia network');
+            return;
+        }
+
+        try {
+            // Verify signer is connected
+            await signer.getAddress();
+        } catch (error) {
+            console.error('Signer error:', error);
+            setCreateError('Wallet connection error. Please try reconnecting.');
             return;
         }
 
@@ -195,8 +204,21 @@ function Riddler({provider, contract, puzzle, onPrevious, onNext, canGoPrevious}
 
     // Submit correct answer to blockchain
     const submitToBlockchain = async () => {
-        if (!contract || !provider) {
-            setSubmitError('Please connect your wallet first');
+        if (!signer || !contract) {
+            setSubmitError('Please connect your wallet and switch to Sepolia network');
+            return;
+        }
+
+        // Check if we're on the right network first
+        try {
+            const network = await provider.getNetwork();
+            if (network.chainId !== 11155111) {
+                setSubmitError('Please switch to Sepolia network');
+                return;
+            }
+        } catch (error) {
+            console.error('Network check error:', error);
+            setSubmitError('Network error. Please check your connection.');
             return;
         }
 
@@ -209,14 +231,8 @@ function Riddler({provider, contract, puzzle, onPrevious, onNext, canGoPrevious}
         setSubmitError('');
 
         try {
-            // Get signer and check network
-            const signer = await provider.getSigner();
-            const network = await provider.getNetwork();
-            
-            if (network.chainId !== 11155111) {
-                throw new Error('Please switch to Sepolia network');
-            }
 
+            // Get solver address directly from signer
             const solverAddressRaw = await signer.getAddress();
             const solverAddress = ethers.utils.getAddress(solverAddressRaw);
             
@@ -231,6 +247,7 @@ function Riddler({provider, contract, puzzle, onPrevious, onNext, canGoPrevious}
 
             // Submit proof
             console.log('Submitting to blockchain...');
+            const gasPrice = await provider.getGasPrice();
             const transaction = await contract.submitProof(
                 authorAddress,
                 puzzleType,
@@ -241,7 +258,7 @@ function Riddler({provider, contract, puzzle, onPrevious, onNext, canGoPrevious}
                 solverAddress,
                 { 
                     gasLimit: 500000,
-                    gasPrice: await provider.getGasPrice()
+                    gasPrice: gasPrice.mul(120).div(100), // Add 20% to gas price
                 }
             );
 
@@ -291,6 +308,10 @@ function Riddler({provider, contract, puzzle, onPrevious, onNext, canGoPrevious}
                 errorMessage = 'Insufficient funds to complete transaction.';
             } else if (error.message.includes('user rejected')) {
                 errorMessage = 'Transaction was cancelled.';
+            } else if (error.message.includes('Failed to fetch')) {
+                errorMessage = 'Network connection error. Please check your connection and try again.';
+            } else if (error.message.includes('transaction failed')) {
+                errorMessage = 'Transaction failed. Please try again with a higher gas price.';
             } else {
                 errorMessage += error.message;
             }
